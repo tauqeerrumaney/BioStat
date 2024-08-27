@@ -1,0 +1,70 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+---
+title: "Homework 6"
+author: "Tauqeer Kasam Rumaney"
+date: "2022-11-28"
+output: html_document
+
+## Exercise 1: Statistical tests
+
+a) In the KiGGS dataset, perform a 2-sample t-test for paired samples (i.e. dependent samples) for the two variables 'sys1' and 'sys2'. Interpret the results.
+# We can't do dependent test since arguments don't have the same length but if we do indepndent test we get a vaalue, for which null hypothesis holds true.
+b) In the KiGGS dataset, select one metric and one binary variable (or create one) and perform a 2-sample t-test. Then do a Mann-Whitney U-test with the same variables, explore the function to do this, and compare the results to the t-test.
+#Even though the p-values are different for both tests, its enough to deduce that the null hypothesis is wrong and thus discarded. 
+
+```{r}
+dat_link <- url("https://www.dropbox.com/s/pd0z829pv2otzqt/KiGGS03_06.RData?dl=1")
+load(dat_link)
+dat <- KiGGS03_06
+boxplot(dat$sys1~dat$sys2)
+#t.test(dat$sys1~dat$sys2, mu=0, paired=TRUE, var.equal=FALSE, alternative="two.sided", conf.level=0.95)
+#Error in t.test.formula(dat$sys1 ~ dat$sys2, mu = 0, paired = FALSE, var.equal = FALSE,  : grouping factor must have exactly 2 levels
+
+abc<-na.omit(dat$sys1)
+def<-na.omit(dat$sys2)
+
+#shapiro.test(as.numeric(abc))
+#Error in shapiro.test(as.numeric(abc)) : sample size must be between 3 and 5000
+
+#t.test(as.numeric(abc), as.numeric(def), alternative = "two.sided", mu = 0, paired = TRUE, var.equal = FALSE,conf.level = 0.95)
+#Error in complete.cases(x, y) : not all arguments have the same length
+
+t.test(as.numeric(abc),as.numeric(def),alternative = "two.sided", mu = 0, paired = FALSE, var.equal = FALSE,conf.level = 0.95)
+#This is for independent test
+```
+```{r}
+
+
+summary(dat$PPoint)
+summary(dat$OW)
+
+result <- wilcox.test(dat$PPoint~dat$OW,exact = FALSE)
+result
+
+t.test(dat$PPoint~dat$OW)
+
+
+
+```
+```{r}
+a<-as.numeric(as.character(dat$sys1))
+b<-as.numeric(as.character(dat$sys2))
+mean(a,na.rm=TRUE)
+mean(b,na.rm=TRUE)
+t.test(a,b,alternative = "two.sided", paired = TRUE)
+```
+
+
+## Exercise 2: Study planning (optional)
+
+Compute the sample size using R or G*Power, for a study that investigates the question if biking to the HPI is associated with concentration in class or not.
+
+Think about how you can formulate this study question in terms of variables, and which statistical test (that we have covered in class 6) would be appropriate for this.
+
+a) Which test could you use?
+
+b) Which sample size is necessary, to find a true effect with 80\% power at $\alpha=0.05$ using this statistical test?

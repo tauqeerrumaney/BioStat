@@ -1,0 +1,122 @@
+---
+title: "Homework 3"
+author: "Tauqeer Kasam Rumaney"
+date: "November 2, 2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Exercise 1: Compute frequencies in the Pima diabetes dataset
+
+Load the Pima diabetes dataset:
+
+```{r}
+abc <- read.csv(file="/Users/tauqeerrumaney/BioStat/Pima_diabetes.csv")
+```
+
+Which variables are measured on a nominal level?
+# Outcome since other variables have a clear ordering
+Now compute frequency tables, barplots, and mosaic plots of all nominal variables in the dataset.
+```{r}
+table(abc$Outcome)
+barplot(table(abc$Outcome))
+hist(as.numeric(abc$Outcome))
+table1 <- table(abc$Outcome)
+mosaicplot(table1, shade = TRUE, main = "Mosaic plot of Outcome", xlab = "Outcome")
+```
+
+Next, create a variable which describes whether a woman had more or less than 4 pregnancies. Then, use this variable to create a 2x2 table with diabetes outcome. Do you see an indication of whether the number of pregnancies is associated with diabetes prevalence? Do you think your investigation is a good way to investigate this?
+```{r}
+
+abc$P[(abc$Pregnancies <= 4)] <- 0
+abc$P[(abc$Pregnancies > 4)] <- 1
+table(abc$P)
+table2 <- table(abc$P,abc$Outcome)
+prop.table(table2, 1) 
+prop.table(table2, 2)
+#install.packages("expss")
+library(expss)
+expss::cro(abc$P,abc$Outcome)
+#helpdata <- abc[, c(9,10)]
+#names(helpdata) <- c("Outcome", "Pregnancy")
+#helpdata = apply_labels(helpdata,
+                      #Outcome = "Is person Diabetic",
+                      #Pregnancy = "Pregnancy greater than 4"
+                      #)
+#calculate(helpdata, cro(Outcome, Pregnancy)
+#Error: Incomplete expression: calculate(helpdata, cro(Outcome, Pregnancy)
+```
+
+## Exercise 2: Generate a table with descriptive statistics (optional, but recommended)
+
+Use any dataset (a dataset that you have worked with in the past, or that you are currently working with, a dataset that is available on Blackboard, in R or that you have downloaded from the internet), and generate a table with descriptive statistics of the main variables of interest.
+
+```{r}
+xyz <- read.csv(file="/Users/tauqeerrumaney/BioStat/Pima_diabetes.csv")
+table(xyz$BloodPressure)
+n <- nrow(xyz)
+table(xyz$BloodPressure)/n
+prop.table(table(xyz$BloodPressure))
+#table(xyz$BloodPressure, xyz$Glucose)
+#expss::cro(xyz$BloodPressure, xyz$Glucose)
+?table()
+min(xyz$BloodPressure)
+max(xyz$BloodPressure)
+range(xyz$BloodPressure)
+median(xyz$BloodPressure)
+mean(xyz$BloodPressure)
+mode(xyz$BloodPressure)
+mad(xyz$BloodPressure)
+var(xyz$BloodPressure)
+sd(xyz$BloodPressure)
+quantile(xyz$BloodPressure, seq(0, 1, 0.25))
+summary(xyz)
+library(fBasics)
+skewness(xyz$BloodPressure)
+kurtosis(xyz$BloodPressure)
+tapply(xyz$BloodPressure, xyz$Glucose, mean, na.rm = TRUE)
+
+```
+
+
+## Exercise 3: Plots using ggplot2
+
+Load the NoShow dataset:
+
+```{r}
+load(file = url("https://www.dropbox.com/s/4oqg79cn1qfnhsh/NoShowdata.RData?dl=1"))
+head(NoShowdata)
+```
+
+Use ggplot2 to generate the following plots:
+
+- Create a boxplots of Age (stratified) by neighborhood.
+- Create a histogram of Age.
+- Create a histogram of Age, stratified by whether the person showed up - in one panel using the or in multiple panels.
+- Stratify this plot further by gender.
+
+```{r}
+library(ggplot2)
+age <- NoShowdata$Age
+neighborhood <- NoShowdata$Neighbourhood
+neighborhood_norm <- rnorm(110527,mean=mean(neighborhood, na.rm=TRUE), sd=sd(neighborhood, na.rm=TRUE))
+boxplot(age,neighborhood_norm, main = "Age (stratified) by neighborhood",xlab = "Age",ylab = "neighborhood", col = "orange", border = "brown" )
+hist(NoShowdata$Age, xlab ="Age")
+
+NoShowdata$NoShow[(NoShowdata$`No-show` == "No")] <- 0
+NoShowdata$NoShow[(NoShowdata$`No-show` == "Yes")] <- 1
+
+ggplot(NoShowdata, aes(x = Age)) +
+  geom_histogram(fill = "white", colour = "black") +
+  facet_grid(NoShow ~ ., scales = "free") 
+
+ggplot(NoShowdata, aes(x = Age)) +
+  geom_histogram(fill = "white", colour = "black") + facet_grid(Gender ~ ., scales = "free")
+```
+
+
+What insights can you get from these plots? For which goal would you create these plots?
+#This plots allows to visually assess the central tendency, the amount of variation in the data as well as the presence of gaps, outliers or unusual data points.The goal is to ease our task of Statistics as well as to find relations between differnet variables and the factor which influence those variables.

@@ -1,0 +1,161 @@
+---
+title: "Final Exam"
+author: "Tauqeer Kasam Rumaney"
+date: "2023-03-06"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Task 2 part a
+
+```{r}
+library(haven) ## Load haven add-on package
+path <- file.path("/Users/tauqeerrumaney/BioStat/KiGGS03_06.sav")
+dataset <- read_sav(path)
+```
+
+## Task 2 part b and c
+
+```{r}
+library(dplyr) ## Load dplyr add-on package
+kiggs <- dplyr::select(dataset,"E070M", "E070V", "E072", "E074", "arztZ01", "sex", "age2", "schichtz", "e065z")
+kiggs$E070M    <- factor(kiggs$E070M,    labels = c("yes, daily", "yes, occasionally", "no"))
+kiggs$E070V    <- factor(kiggs$E070V,    labels = c("yes, daily", "yes, occasionally", "no"))
+kiggs$E072     <- factor(kiggs$E072,     labels = c("yes, regularly", "yes, from time to time", "no, never"))
+kiggs$E074     <- factor(kiggs$E074,     labels = c("yes, regularly", "yes, from time to time", "no, never", "has not breastfed"))
+kiggs$sex      <- factor(kiggs$sex,      labels = c("boys", "girls"))
+kiggs$age2     <- factor(kiggs$age2,     labels = c("0-1y", "2-3y", "4-5y", "6-7y", "8-9y", "10-11y", "12-13y", "14-15y", "16-17y"))
+kiggs$schichtz <- factor(kiggs$schichtz, labels = c("low social status", "medium social status", "high social status"))
+save(kiggs,file="data.Rda")
+```
+
+## Task 3 part a
+
+```{r}
+# Checking for factors
+is.factor(kiggs$E070M)
+is.factor(kiggs$E070V)
+is.factor(kiggs$E072)
+is.factor(kiggs$E074)
+# The variables are factor variables, so no need to convert into factor variable
+table(kiggs$E074)
+# Setting the value "has not breastfed" of variable E074 to NA for all children
+kiggs$E074[kiggs$E074 == "has not breastfed"] <- NA 
+kiggs$E074 = droplevels(kiggs$E074)
+table(kiggs$E074)
+# The steps worked as intended
+# calculating 'burdenS' variable
+burdenS <- unclass(kiggs$E070M) + unclass(kiggs$E070V)  + unclass(kiggs$E072)  + unclass(kiggs$E074)
+```
+## Task 3 part b
+
+```{r}
+# Adding 'burdenS' into kiggs dataset
+kiggs$burdenS <- burdenS
+```
+
+Lower the value of the 'burdenS' variable, higher is the exposure to smoke.
+
+```{r}
+# saving the file again
+save(kiggs,file="data.Rda")
+```
+
+## Task 4
+
+```{r}
+# visualizing the tables with and without merging burdenS variable
+library(tidyr) ## Load tidyr add-on package
+kiggs
+# merging 4 columns into 1 variable called burdenS
+unite(kiggs, burdenS, E070M, E070V, E072, E074, sep = "/")
+
+#install.packages('epiDisplay') ## Installing epiDisplay add-on package
+library(epiDisplay) ## Load epiDisplay add-on package
+tab1(kiggs$age2, cum.percent = TRUE)
+tab1(kiggs$sex, cum.percent = TRUE)
+tab1(kiggs$burdenS, cum.percent = TRUE)
+result.mean <-mean(kiggs$arztZ01,na.rm = TRUE) # mean of arztZ01 variable
+print(round(result.mean, 3), nsmall = 3)
+result.std <-sd(kiggs$arztZ01,na.rm = TRUE) # standard deviation of arztZ01 variable
+print(round(result.std, 3), nsmall = 3)
+```
+```{r}
+# counting the number of missing values in the variables 
+sprintf("Missing values in age2: %d", sum(is.na(kiggs$age2)))
+sprintf("Missing values in sex: %d", sum(is.na(kiggs$sex)))
+sprintf("Missing values in burdenS: %d", sum(is.na(kiggs$burdenS)))
+sprintf("Missing values in arztZ01: %d", sum(is.na(kiggs$arztZ01)))
+
+# counting the total number of complete observations in the four mentioned variables
+sprintf('Total number of complete cases: %d ', sum(complete.cases(kiggs$age2, kiggs$sex, kiggs$burdenS, kiggs$arztZ01)))
+
+```
+
+## Task 5 part a
+
+```{r}
+str(kiggs)
+# As we have converted some variables into factor, we will convert the remaining variables which we want as factor variable 
+kiggs$e065z <- as.factor(kiggs$e065z)
+str(kiggs) # making sure variables have become factor variables
+```
+
+
+```{r}
+fit <- lm(arztZ01 ~ sex + age2 + burdenS + schichtz + e065z, data=kiggs) # multiple linear regression model
+sumary <- summary(fit)
+sumary$coefficients <- round(sumary$coefficients, 3)
+sumary$residuals <- round(sumary$residuals, 3)
+sumary
+```
+
+I have considered sex as a factor variable as it tells about the sex of the child and has 2 factors categories and both of the categories are distinguished, but a meaningful order is not possible. Hence, it is a nominal variable.
+I have considered age2 as a factor variable as it tells about which age group does a child belngs to amongst 9 factors categories and their is a logical hierarchy of categories i.e. the categories increase as they go from first to last and we cannot measure the difference between the different categories. Hence, it is an ordinal variable.
+I have considered schichtz as a factor variable as it tells about which social status does a child belongs to amongst 3 factors categories and we can't measure the difference between the categories as it cannot be said that the distance between Niedriger Sozialstatus and Mittlerer Sozialstatus is the same as the distance between Mittlerer Sozialstatus and Hoher Sozialstatus. Hence, it is an ordinal variable.
+I have considered e065z as a factor variable as it tells about the number of hours a child sleeps in a day in a range of 5 to 21 hours and we can compare the characteristic values and also the distances between the values can be calculated. Hence, it is a metric variable.
+I have considered burdenS not a factor variable because we have information about the variable as we have created it (higher the value, lower the smoke exposure), so as such by factoring it, we won't get new information as well as we have to use this variable to do the significance test in further questions so it makes no sense to convert this variable to a factor variable.     
+## Task 5 part b
+
+The regression coefficient for the predictor 'burdenS' is -0.030. This can be interpreted as keeping 'age2', 'sex', 'schichtz' and 'e065z' constant, the predicted college 'arztZ01' would decrease 0.030 with a unit increase in 'burdenS'.
+
+```{r}
+ci <- confint(fit, 'burdenS', level=0.95)
+round(ci, 3)
+```
+
+p-value for 'burdenS' variable is 0.150 which is greater than 0.05 which indicates that that null hypothesis is accepted which means that it is not significant in the regression model. This mean that it is possible for us to remove them from our model since removing it won't significantly affect our results.
+
+From the output, we can also see that the multiple R-squared is 0.1702. Therefore, about 17% of the variation in 'arztZ01' can be explained by the multiple linear regression with 'age2', 'sex', 'burdenS' , 'schichtz' and 'e065z' as the predictors. The adjusted R-squared is slightly smaller because of the consideration of the number of predictors.
+
+Since the p-value is greater than the significance level, we fail to reject the null hypothesis and conclude that there is no statistically significant relationship between the predictor and predictant variables in the population.
+
+## Task 5 part c
+
+If there is evidence that individuals drawn from the same area are correlated with each other, but we are not interested in the effect of the area on the health outcome of interest, a suitable strategy for accounting for this correlation is to use clustered standard errors in our statistical analysis.
+
+## Task 6 part a
+
+It is widely accepted, based on studies and expert knowledge, that smoking during pregnancy is linked to a baby's birth weight being lower. The amount of cigarettes smoked, the mother's age, the gestational age at smoking initiation, and other variables that may affect birth weight can all affect how large an effect this link has. The mean dfference is in the range of 200-250 grams in birth weight between babies born to mothers who smoke 10 cigarettes per day and those who do not smoke at all. I skimmed through a lot of literature, but I couldn't find standard deviation of the groups, making it impossible for me to calculate the Cohen's D standardized effect size. 
+
+The effect size is an important parameter to consider when interpreting the results of a study because it can help determine the practical significance of the findings. A large effect size indicates that the difference between the groups is significant and meaningful, while a small effect size may not be as clinically relevant. In the case of smoking during pregnancy and its effect on birth weight, a reduction of 200-250 grams in birth weight can have significant long-term health consequences for the baby, making this effect size clinically meaningful. Some studies reported the effect size as a standardized mean difference (SMD), which is calculated by dividing the difference in means between the smoking and non-smoking groups by the pooled standard deviation of the two groups. In this case, an SMD of 0.5 would represent a moderate effect size, while an SMD of 0.8 would represent a large effect size. I am going with moderate effect size to answer further questions.
+
+## Task 6 part b
+
+A suitable statistical model for the sample size calculation for this study could be a two-sample t-test. This model can be used to compare the mean birth weight of babies born to smoking mothers and non-smoking mothers. The two-sample t-test assumes that the birth weight of the babies in each group follows a normal distribution and that the variances of the two groups are equal. In this study, we have two groups: smoking mothers and non-smoking mothers. The hypothesis to be tested is whether smoking ten cigarettes per day during pregnancy affects the birth weight of the baby compared to not smoking at all. The null hypothesis would be that there is no difference in the mean birth weight of babies born to smoking mothers and non-smoking mothers, while the alternative hypothesis would be that the mean birth weight of babies born to smoking mothers is lower than that of non-smoking mothers. Using the two-sample t-test will allow us to calculate the sample size required to detect a significant difference in the mean birth weight between the two groups, assuming a specific effect size and level of statistical significance.
+
+```{r}
+#install.packages("pwr")
+library(pwr)
+effect_size <- 0.5 # assuming medium effect size
+power <- 0.8
+significance_level <- 0.05
+pwr.t.test(n = NULL, d = effect_size, sig.level = significance_level, power = power, type = "two.sample")
+
+```
+The required sample size for each group is approximately 64. Therefore, a total sample size of 128 (64 in each group) would be required to achieve a power of 80% and a significance threshold of alpha = 0.05.
+
+## Task 6 part c
+
+A major bias according to me is that we have only considered one variable (10 smokes a day or 0 smokes a day), but there are also other variables that influence the birth weight of the baby that are not accounted for in the study design, such as maternal age, maternal diet, or stress levels.

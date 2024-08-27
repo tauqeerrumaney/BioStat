@@ -1,0 +1,87 @@
+---
+title: "Homework 4"
+author: "Tauqeer Kasam Rumaney"
+date: "November 13, 2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Exercise 1: Descriptive statistics - example 1
+
+Create a summary table with descriptive statistics of the esoph dataframe in the datasets package. For example by using the summary_table function in the qwraps2 package.
+
+Alternatively, only compute the descriptive statistics of interest, and put them into a table in Word (or Excel, or another program).
+
+```{r, results='asis'}
+
+# Load the data
+library(datasets)
+
+dat1 <- esoph
+
+library(qwraps2)
+options(qwraps2_markup = "markdown")
+
+library(table1)
+table1::table1(~ alcgp + tobgp + ncases + ncontrols | agegp, data = dat1)
+
+dat1$alch <- factor(dat1$alcgp, labels = c("low","medium","high", "very high"))
+dat1$tob <- factor(dat1$tobgp, labels = c("low","medium","high", "very high"))
+
+summary1<-
+  list(
+    "Alcohol Consumption"=
+      list(" (0-39) " = ~ qwraps2::n_perc0(alch == "low" , show_symbol = TRUE, na_rm = TRUE),
+           " (40-79) " = ~ qwraps2::n_perc0(alch == "medium", show_symbol = TRUE, na_rm = TRUE),
+           " (80-119) " = ~ qwraps2::n_perc0(alch == "high", show_symbol = TRUE, na_rm = TRUE),
+           " (120+) " = ~ qwraps2::n_perc0(alch == "very high", show_symbol = TRUE, na_rm = TRUE)),
+    "Tobacco Consumption"=
+      list(" (0-9) " = ~ qwraps2::n_perc0(tob == "low" , show_symbol = TRUE, na_rm = TRUE),
+           " (10-19) " = ~ qwraps2::n_perc0(tob == "medium", show_symbol = TRUE, na_rm = TRUE),
+           " (20-29) " = ~ qwraps2::n_perc0(tob == "high", show_symbol = TRUE, na_rm = TRUE),
+           " (30+) " = ~ qwraps2::n_perc0(tob == "very high", show_symbol = TRUE, na_rm = TRUE)),
+      "Ncases" =
+       list("Mean (SD)" = ~ qwraps2::mean_sd(ncases, denote_sd = "paren", na_rm = TRUE, show_n = "never"),
+            "Median (IQR)" = ~ qwraps2::median_iqr(ncases, na_rm = TRUE, show_n = "never")),
+      "Ncontrols" =
+       list("Mean (SD)" = ~ qwraps2::mean_sd(ncontrols, denote_sd = "paren", na_rm = TRUE, show_n = "never"),
+            "Median (IQR)" = ~ qwraps2::median_iqr(ncontrols, na_rm = TRUE, show_n = "never"))
+
+      )
+    
+  
+
+table2<- summary_table(dplyr::group_by(dat1, agegp), summary1)
+table2_overall <- summary_table(dat1, summary1)
+table2_both <- cbind(table2_overall, table2)
+
+print(table2_both,
+      rtitle = "Summary Statistics",
+      cnames = c("Overall \\\ (N = 88)", "Age grp (25-34) \\\ (N = 15)", "Age grp (35-44) \\\ (N = 15)", "Age grp (45-54) \\\ (N = 16)", "Age grp (55-64) \\\ (N = 16)", "Age grp (65-74) \\\ (N = 15)", "Age grp (75+) \\\ (N = 11)"))
+
+
+
+
+#Converting to Excel
+#install.packages("writexl")
+library(writexl)
+#write_xlsx(table2_both, "/Users/tauqeerrumaney/BioStat/ abc.xlsx") #Error: Argument x must be a data frame or list of data frames
+write_xlsx(dat1, "/Users/tauqeerrumaney/BioStat/ abc.xlsx")
+```
+
+## Exercise 2: Descriptive statistics - example 2 (optional, more advanced)
+
+Create a summary table with descriptive statistics of the UKLungDeaths data in the datasets package. For example by using the summary_table function in the qwraps2 package. 
+
+Alternatively, only compute the descriptive statistics of interest, and put them into a table in Word (or Excel, or another program).
+
+```{r}
+# Load the data
+library(datasets)
+?UKLungDeaths 
+```
+
+Hint: the data consists of three datasets.

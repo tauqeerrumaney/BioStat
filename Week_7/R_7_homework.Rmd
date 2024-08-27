@@ -1,0 +1,72 @@
+---
+title: "Homework 7"
+author: "Tauqeer Kasam Rumaney"
+date: "December 5, 2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Preparations
+
+Load KiGGS data:
+
+```{r}
+dat_link <- url("https://www.dropbox.com/s/pd0z829pv2otzqt/KiGGS03_06.RData?dl=1")
+load(dat_link)
+kiggs <- KiGGS03_06
+```
+
+## Exercise 1: Multiple imputation
+
+a) In the KiGGS dataset, choose 2 metric variables of your choice.
+#PPoint and KreaUrin
+b) Compute the correlation between these two variables
+```{r}
+res0 <- cor.test(kiggs$PPoint, kiggs$KreaUrin, method = "pearson")
+res0$estimate
+res0$conf.int
+res0$p.value
+```
+
+c) Perform a multiple imputation using the mice function with the 'pmm' method and otherwise default settings.
+```{r}
+library(mice)
+
+dat <- data.frame(PPoint = as.numeric(as.character(kiggs$PPoint)), 
+                  KreaUrin = as.numeric(as.character(kiggs$KreaUrin)))
+table(!is.na(dat$PPoint))
+table(!is.na(dat$KreaUrin))
+
+# Pattern of missing values
+md.pattern(dat)
+
+# Nice visualization of missing values in the VIM package, can be useful to identify patterns of missing values
+library(VIM)
+aggr(dat, col = c('navyblue','red'), numbers = TRUE, sortVars = TRUE, labels = names(dat), cex.axis = 0.7, gap = 3, ylab = c("Histogram of missing data", "Pattern"))
+
+# Step 1: Do imputation of missing values, generate 5 imputed datasets
+tempData <- mice(dat, m = 5, maxit = 5, meth = 'pmm', seed = 500)
+summary(tempData)
+
+# The 5 imputed datasets can be extracted as follows:
+completedData1 <- complete(tempData,1)
+completedData2 <- complete(tempData,2)
+completedData3 <- complete(tempData,3)
+completedData4 <- complete(tempData,4)
+completedData5 <- complete(tempData,5)
+
+```
+
+d) Compute the correlation again on the multiple imputed datasets.
+```{r}
+# Step 2: Do the statistical analysis using the "with" function
+modelFit1 <- with(tempData, cor(PPoint, KreaUrin, method = "pearson"))
+mean(unlist(modelFit1$analyses))
+with(tempData, cor.test(PPoint, KreaUrin, method = "pearson"))
+modelFit1 <- with(tempData, lm(PPoint ~ KreaUrin))
+summary(pool(modelFit1), dfcom = 17638)
+```
+

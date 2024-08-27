@@ -1,0 +1,98 @@
+---
+title: "Homework 10"
+author: "Tauqeer Kasam Rumaney"
+date: "January 16, 2023"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+For all exercises, use the KiGGS dataset.
+
+```{r}
+dat_link <- url("https://www.dropbox.com/s/pd0z829pv2otzqt/KiGGS03_06.RData?dl=1")
+load(dat_link)
+dat <- KiGGS03_06
+```
+
+
+## Exercise 1: Logistic regression
+
+Choose 1 suitable outcome variable of interest and 3 predictors, and compute a logistic regression model. Interpret the results: which predictor is associated with the outcome and what is the strength of association (odds ratio)? Also, is the model a good fit i.e. can the outcome be predicted well (look at the misclassification table for this)?
+
+```{r}
+summary(dat$capi) #to check if it is binary variable or not
+sbp1 <- as.numeric(as.character(dat$sys1))
+sbp2 <- as.numeric(as.character(dat$sys2))
+pp <- as.numeric(as.character(dat$PPoint))
+logit <- glm(dat$capi ~ sbp1+sbp2+pp, data=dat,family="binomial")
+summary(logit)
+```
+#Conclusion: Each one-unit change in sbp1 will increase the log odds of getting interviwed by doctor by 0.03, and its p-value(< 0.05) indicates that it is somewhat significant in determining whether someone gets interviwed by doctor or not.
+
+# Each one-unit change in sbp2 will decrease the log odds of getting interviwed by doctor by 0.02, and its p-value(< 0.05) indicates that it is somewhat significant in determining whether someone gets interviwed by doctor or not.
+
+# Since the p value is greater than 0.05, it is not significant in the regression model. This mean that it is possible for us to remove them from our model since removing it won't significantly affect our results.  
+
+# Since the difference is only 7 between Null deviance and Residual deviance as well as AIC is very high, the model is not a good fit.
+
+## Exercise 2: Poisson regression
+
+Predict the amount of measles vaccinations (Maanzahl) by the number of siblings (e006B1), the sex and age of the children (sex, age2), place of residence (STALA, OW) and the monthly household income (e093), using a Poisson regression model. Interpret the results. Which variables are associated with the outcome? Is the model a good fit to the data?
+
+```{r}
+str(dat$Maanzahl)
+table(dat$Maanzahl)
+mean(dat$Maanzahl)
+var(dat$Maanzahl)
+#I am getting mean and variance as NA, can you explain why?
+summary((dat$e006B1))
+table(dat$sex)
+table(dat$age2)
+summary(dat$STALA)
+summary(dat$OW)
+summary(dat$e093)
+vac <- as.numeric(as.character(dat$Maanzahl))
+siblings <- as.numeric(as.character(dat$e006B1))
+sex <- as.numeric(as.character(dat$sex))
+age <- as.numeric(as.character(dat$age2))
+res <- dat$STALA
+direction <- dat$OW
+income <- dat$e093
+#output <- glm(dat$Maanzahl ~ siblings, data = dat, family = poisson(link = "log"))
+#print(summary(output))  
+#Error in glm.fit(x = numeric(0), y = integer(0), weights = NULL, start = NULL, : object 'fit' not found
+```
+
+```{r}
+myvars <- c("Maanzahl", "e006B1", "sex", "age2", "STALA", "OW","e093")
+newdata <- dat[myvars]
+summary(newdata)
+newdata <- newdata[complete.cases(newdata), ]
+
+vac1 <- as.numeric(as.character(newdata$Maanzahl))
+siblings1 <- as.numeric(as.character(newdata$e006B1))
+sex1 <- as.numeric(as.character(newdata$sex))
+age1 <- as.numeric(as.character(newdata$age2))
+res1 <- newdata$STALA
+direction1 <- newdata$OW
+income1 <- newdata$e093
+output3 <- glm(newdata$Maanzahl ~ newdata$e006B1 + newdata$sex + newdata$age2 + newdata$STALA + newdata$OW + newdata$e093, data = newdata, family = poisson(link = "log"))
+print(summary(output3))
+```
+#Conclusion: The variables which are associated are e006B1, age2 and OW. Other variables are not significant for our model. Since the value of AIC is very high, the model is not a good fit as well as 3/6 variables don't add any significance to our model. 
+
+
+## Exercise 3: Negative Binomial regression (optional)
+
+Predict the amount of measles vaccinations (Maanzahl) by the number of siblings (e006B1), the sex and age of the children (sex, age2), place of residence (STALA, OW) and the monthly household income (e093), using a Negative Binomial regression model. Interpret the results. Which variables are associated with the outcome? Is the model a good fit to the data?
+
+```{r}
+library(MASS)
+output2 <- glm.nb(dat$Maanzahl ~ dat$e006B1 + dat$sex + dat$age2 + dat$STALA + dat$OW + dat$e093, data = dat)
+print(summary(output2))   
+```
+#Conclusion: Same as above
+

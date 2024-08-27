@@ -1,0 +1,55 @@
+---
+title: "Homework 13"
+author: "Tauqeer Kasam Rumaney"
+date: "February 4, 2023"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Exercise 1: Survival analysis
+
+Choose one other provided dataset in the survival package (or any other suitable dataset) which contains time-to-event data. Use the survfit function to compute the Kaplan-Meier estimate of the survival function and plot it. Then choose a variable with 2 or more categories in the dataset and perform a log-rank test. Interpret the results: is there are difference in survival between the groups?
+
+# Load the dataaset
+
+```{r}
+library(survival)
+```
+
+# Survival analysis with the colon dataaset
+
+```{r}
+data <- diabetic
+head(data)
+?diabetic
+```
+
+```{r}
+# compute the Kaplan Meier estimate of the survival function
+KM <- survfit(Surv(time, status) ~ 1, data = data)
+
+# Look at the results (in table form)
+summary(KM)
+
+# Look at the plot:
+plot(KM, main = expression(paste("Kaplan-Meier-estimate ", hat(S)(t), " with 95% CI")), ylab = "Survival function", xlab = "Time")
+
+# Stratify this by eye (1=left, 2=right):
+str(data$eye)
+KM2 <- survfit(Surv(time, status) ~ eye, data = data)
+plot(KM2, main = expression(paste("Kaplan-Meier-estimate ", hat(S)(t), " stratified by eye")), ylab = "Survival function", xlab = "Time", lwd=2, col=1:2)
+legend(x="topright", col = 1:2, lwd = 2, legend=c("left", "right"))
+
+# perform log-rank test:
+logrank <- survdiff(Surv(time, status) ~ eye, data = data)
+# results:
+logrank
+
+```
+
+#Conclusion: The Chi-Squared test statistic is 3 with 1 degree of freedom and the corresponding p-value is 0.08. Since this p-value is more than 0.05, we don't reject the null hypothesis i.e. we don't have sufficient evidence to say that there is a statistically significant difference in survival between the two groups (left eye and right eye).
+
+#We can see that the survival curves are slightly different, but the log rank test tells us that the difference is not statistically significant.

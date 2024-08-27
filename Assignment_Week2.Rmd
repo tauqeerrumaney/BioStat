@@ -1,0 +1,113 @@
+---
+title: "Homework 2"
+author: "Tauqeer Kasam Rumaney"
+date: "October 28, 2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Exercise 1
+
+a) Create an R chunk here to insert R code. Add R code in this R chunk to perform a simple calculation (e.g. calculate the sum of 1 and 2).
+```{r}
+1+2
+```
+b) Create an R chunk with a basic calculation (e.g. 1+1). Try out the different ways how to include this in the knitted report.
+```{r perform-math,echo=TRUE,eval=TRUE}
+a <- 1+2
+
+b <- 234
+
+# subtract a from b
+final_answer <- b - a
+
+# write out the final answer variable
+final_answer
+
+```
+
+c) Knit this Rmd file to html and to pdf.
+```{r}
+#using MiKTeX 
+```
+
+## Exercise 2: Manipulating variables and data frames
+
+Load the Pima Indian dataset:
+
+```{r}
+abc <- read.csv("/Users/tauqeerrumaney/BioStat/Pima_diabetes.csv")
+head(abc)
+saveRDS(abc,"abc.rds")
+Pima_diabetes <- readRDS("abc.rds")
+head(Pima_diabetes)
+```
+
+and answer the following questions:
+
+```{r}
+# How many women have Glucose levels 0?
+table(Pima_diabetes$Glucose == 0  & Pima_diabetes$Outcome == 1)
+# How many women have Insulin levels 0?
+table(Pima_diabetes$Insulin == 0  & Pima_diabetes$Outcome == 1)
+# How many women have both Glucose levels as well as Insulin levels 0?
+table(Pima_diabetes$Glucose == 0 & Pima_diabetes$Insulin == 0 & Pima_diabetes$Outcome == 1)
+# How many women have either Glucose levels or Insulin levels 0?
+table(Pima_diabetes$Glucose == 0 | Pima_diabetes$Insulin == 0 & Pima_diabetes$Outcome == 1)
+# How many women have missing BMI values?
+table(is.na(Pima_diabetes$BMI) & Pima_diabetes$Outcome == 1)
+# How many women have BMI larger than 40?
+table(Pima_diabetes$BMI > 40 & Pima_diabetes$Outcome == 1)
+# Build a dataset that only includes the women with BMI>40
+dat_women <- subset(Pima_diabetes, Outcome == 1 & BMI > 40,)
+head(dat_women)
+# Create a new variable named BMIOutlier, which has the value 0 if a women has BMI smaller or equal 50, and 1 if she has BMI higher than 50
+Pima_diabetes$BMIOutliner <- Pima_diabetes$BMI
+Pima_diabetes$BMIOutliner[(Pima_diabetes$BMI <= 50)] <- 0
+Pima_diabetes$BMIOutliner[(Pima_diabetes$BMI > 50)] <- 1
+head(Pima_diabetes)
+Pima_diabetes[Pima_diabetes$BMI > 50,]
+```
+
+## Exercise 3 (optional)
+
+Explore merging two datasets.
+
+As a preparation, execute the following code to create different data frames
+
+```{r}
+# import data
+dat_ex3 <- read.csv(file = "/Users/tauqeerrumaney/BioStat/Pima_diabetes.csv")
+
+# extract two smaller data sets
+dat3_1 <- dat_ex3[1:100, 1:3]
+dat3_2 <- dat_ex3[101:300, 1:3]
+
+dat3_3 <- dat_ex3[1:100, 1:3]
+dat3_4 <- dat_ex3[1:100, 4:6]
+head(dat3_1)
+head(dat3_2)
+head(dat3_3)
+head(dat3_4)
+```
+
+Task 3a: Think about how you can use the [.] operator to respectively piece dat3_1 and dat3_2, and dat3_3 and dat3_4 together into one data frame.
+
+Task 3b: Explore the help of the merge() function in R in order to achieve the same goal of combining dat3_3 and dat3_4 together into one data frame. Hint: first create an ID variable in each data frame, then use this in the "by" argument.
+```{r}
+dat3_5 <- rbind(dat3_1,dat3_2,dat3_3)
+dat3_5$abc <- NA
+dat3_4$abc <- NA
+merged_df <- merge(dat3_4,dat3_5,by.x = "abc", by.y = "abc")
+head(merged_df)
+#how to rectify this?
+```
+
+
+## Exercise 4 (optional): Times and dates in R
+
+Create an Excel file with 5 observations of 2 variables. Variable 1 is just an ID variable (number 1-5 or character string etc.), and variable 2 is a date/time variable. Use variable 2 to describe the time (and day) you had lunch in the last 5 days. Then try to import the Excel file with both variables into R and/or transform the variables in R to Date or POSIXct variables.
+

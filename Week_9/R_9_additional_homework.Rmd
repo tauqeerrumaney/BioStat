@@ -1,0 +1,82 @@
+---
+title: "Additional Homework 9"
+author: "Tauqeer Kasam Rumaney"
+date: "December 17, 2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+## Exercise 1: Assumptions of linear regression
+
+Load the KiGGS dataset and compute a regression predicting BMI by sex and age groups (age2):
+
+```{r}
+# load data
+dat_link <- url("https://www.dropbox.com/s/pd0z829pv2otzqt/KiGGS03_06.RData?dl=1")
+load(dat_link)
+dat <- KiGGS03_06
+bmi <- dat$bmiB
+sex <- dat$sex
+age <- dat$age2
+bmi_log <- log(bmi)
+
+# Regression:
+fit1 <- lm(bmi ~ sex + age)
+
+# Histogram of Y (BMI):
+hist(bmi)
+qqnorm(scale(bmi)); abline(0,1)
+hist(bmi_log)
+qqnorm(scale(bmi_log)); abline(0,1)
+
+# Linearity of Data (first plot):
+plot(fit1,1)
+#In the graph, we can see that there is no particular pattern as well as the horizontal line is close to zero throughout in the residual plot. This suggests that we can assume linear relationship between the predictors and the outcome variables.
+
+# Distribution of residuals (second plot):
+plot(fit1,2)
+#Q-Q plot shows normality of Residues, and as we can see the distribution follows the straight line in the intervals of -4 to +1.5 and it doesn't follow the line otherwise, so we can conclude that it is normal in the interval of -4 to +1.5 and not normal otherwise
+
+# Homoscedasticity of the residuals (third plot)
+plot(fit1,3)
+fit2 <- lm(bmi_log ~ sex + age)
+plot(fit2, 3)
+#install.packages('lmtest')
+library(lmtest)
+bptest(fit2)
+#p < 0.05, suggesting that our data is not homoscedastic.
+
+# Outliers and high levarage points (fifth plot)
+plot(fit1,5)
+#The plot above highlights the top 3 most extreme points (#6109, #7836 and #12638), with a standardized residuals above +6. Since, there are outliers that exceed 3 standard deviations, so we can ignore the outliers.
+#Additionally, there is no high leverage point in the data. That is, all data points, have a leverage statistic below 2(p + 1)/n = 6/17640 = 3.4e-4.
+
+# Independence of Predictors
+library(car)
+durbinWatsonTest(fit1)
+#p < 0.05, so the errors are autocorrelated. We have violated the independence assumption.
+
+# Linear relationship of Y with predictors:
+plot(sex, bmi)
+plot(age, bmi)
+
+# Multicollinear
+cor(as.numeric(sex), as.numeric(age), use = "complete.obs")
+#Since the value is very low, we can conclude that both the variables "sex" and "age2" are not related.
+
+# results:
+summary(fit1)
+```
+
+In this model, investigate and judge whether the assumptions listed on slide 13 in lecture 9 are satisfied.
+
+## Exercise 2: Model selection in linear regression (optional)
+
+In the KiGGS dataset, aim to select relevant predictors for sys12 (systolic blood pressure). Use 2 of the model selection approaches described on slide 26, apply them to the KiGGS dataset and compare the results.
+
+## Exercise 3: Linear regression with multiple imputation (optional)
+
+Run the code in the Rmd file R_9b_linear_regression_MI.Rmd, inspect the R code what it is doing, and look at the results. Apply the same to the linear regression model of another variable of your choice.

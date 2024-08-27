@@ -1,0 +1,81 @@
+---
+title: "Homework 8"
+author: "Tauqeer  Kasam Rumaney"
+date: "December 11, 2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+Download this R Markdown file, save it on your computer, and perform all the below tasks by inserting your answer in text or by inserting R chunks below. After you are done, upload this file with your solutions on Moodle.
+
+```{r}
+dat_link <- url("https://www.dropbox.com/s/pd0z829pv2otzqt/KiGGS03_06.RData?dl=1")
+load(dat_link)
+dat <- KiGGS03_06
+```
+
+## Exercise 1: Correlation
+
+a) In the KiGGS dataset, compute the Pearson and Spearman correlation coefficient for the two variables 'sys1' and 'sys2' and hypothesis tests whether the two variables are associated or not. Interpret the results, and decide which of the two coefficients you would report in your analysis and why.
+
+```{r}
+sbp1 <- as.numeric(as.character(dat$sys1))
+sbp2 <- as.numeric(as.character(dat$sys2))
+hist(sbp1)
+hist(sbp2)
+plot(sbp1,sbp2)
+res <- cor.test(sbp1, sbp2, use = "complete.obs", method = "pearson")
+res #Pearson
+cor(sbp1, sbp2, use = "complete.obs", method = "spearman") #Spearman
+```
+Conclusion: We can conclude that 'sys1' and 'sys2' are significantly correlated with a correlation coefficient of 0.84 and p-value of 2.2^{-16}. We will report the Pearson coefficient since both the variables are metric variables as well as they are normally distributed
+
+
+b) Optional: Compute confidence intervals of the correlation coefficient estimates from part a). Note: for confidence intervals of the Spearman coefficient, you need another function.
+
+```{r}
+res$conf.int
+#SpearmanRho(sbp1,sbp2, conf.level=0.95)
+#Error in SpearmanRho(sbp1, sbp2, conf.level = 0.95) : could not find function "SpearmanRho"
+```
+
+## Exercise 2: Linear regression
+
+a) Predict sys2 by sys1 using a simple linear regression, and interpret the results.
+
+```{r}
+res1 <- lm(sbp2 ~ sbp1)
+summary(res1)
+head(predict(res1))
+```
+
+Conclusion: Since the p-value is less than 0.05, we are confident that the coefficients i.e. β0 and β1 are not zero, meaning the coefficients does in fact add value to the model by helping to explain the variance within our dependent variable and thus null hypothesis is rejected.
+
+b) Add age2 and sex as predictors to the linear regression model above, and interpret the results. 
+
+```{r}
+age2 <- dat$age2
+table(age2)
+sex <- dat$sex
+res2 <- lm(sbp2 ~ sbp1 + age2 + sex)
+summary(res2)
+head(predict(res2))
+```
+
+Conclusion: We can interpret that group 4-5 J. in 'age2' variable ais not significant in the multiple regression model. This mean that it is possible for us to remove them from our model since removing it won't significantly affect our results. I also don't know why in 'age2' variable group 2-3 J. is skipped (would be helpful if you can answer it in feedback).
+
+## Exercise 3: Visualization of regression (optional)
+
+Use the functions in ggplot2 to compute a scatter plot and insert the regression line of the analysis in exercise 2a.
+
+```{r}
+library(tidyverse)
+ggplot(data = dat, aes(x = sbp1, y = sbp2)) +
+  geom_point(color = "grey") +
+  geom_smooth(method='lm',color='black') +
+  theme_minimal() +
+  labs(x='sbp1', y='sbp2', title='Linear Regression Plot')+
+  theme(plot.title = element_text(hjust=0.5, size=20, face='bold')) 
+```
+
